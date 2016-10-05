@@ -33,18 +33,13 @@ New board:
 """
 import sys
 
+#this function creates the initial board configuration and time limit from command line
 def createBoard():
-    #TODO: create the board configuration from the initial command line parameters
-    #inputString = list(".w......b")
-    #n = 3   #board size is nxn
-    #k = 3   #value required to lose
-    #t = 5   #time limit in seconds
     n = int(sys.argv[1])  #board size is nxn
     k = int(sys.argv[2])  # value required to lose
     inputString = list(sys.argv[3])    #board configuration
     t = int(sys.argv[4])  # time limit in seconds
-    curIndex = 0
-    limit = n*n
+    curIndex = 0    #counter to track the character in the input
     board = [[0 for row in range(0, n)] for col in range(0, n)]
     for i in range(n):
         for j in range(n):
@@ -52,10 +47,20 @@ def createBoard():
             curIndex +=1
     return board, n, k, t
 
+#this function finds who plays next, the white or the black
 def findTurn(board):
-    #TODO: find whose turn is it to play, return either black or white
-    turn = 'w'
-    return turn
+    whiteCount = 0  #counter to track white moves
+    blackCount = 0  #counter to track black moves
+    for i in range(n):
+        for j in range(n):
+            if board[i][j] == 'w':
+                whiteCount += 1
+            elif board[i][j] == 'b':
+                blackCount += 1
+    if whiteCount > blackCount:
+        return 'b'
+    else:
+        return 'w'
 
 def evaluationCalculation(board):
     #TODO: write the evaluation function for the current board configuration
@@ -75,3 +80,5 @@ if __name__ == "__main__":
     #TODO: take input form command line
     board, n, k, t = createBoard()
     print board
+    turn = findTurn(board)
+    print turn
