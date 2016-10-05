@@ -31,19 +31,47 @@ Hmm, I'd recommend putting your marble at row 2, column 1.
 New board:
 .w.w....b
 """
+import sys
 
 def createBoard():
     #TODO: create the board configuration from the initial command line parameters
+    #inputString = list(".w......b")
+    #n = 3   #board size is nxn
+    #k = 3   #value required to lose
+    #t = 5   #time limit in seconds
+    n = int(sys.argv[1])  #board size is nxn
+    k = int(sys.argv[2])  # value required to lose
+    inputString = list(sys.argv[3])    #board configuration
+    t = int(sys.argv[4])  # time limit in seconds
+    curIndex = 0
+    limit = n*n
+    board = [[0 for row in range(0, n)] for col in range(0, n)]
+    for i in range(n):
+        for j in range(n):
+            board[i][j] = inputString[curIndex]
+            curIndex +=1
+    return board, n, k, t
 
 def findTurn(board):
     #TODO: find whose turn is it to play, return either black or white
+    turn = 'w'
+    return turn
 
 def evaluationCalculation(board):
     #TODO: write the evaluation function for the current board configuration
-
+    evaluation = 0
+    return evaluation
 
 def successors(board):
     #TODO: write the successor function here
+    return successors
 
 def minMax(board):
     #TODO: write the min-max algorithm here
+    return False
+
+#the main function
+if __name__ == "__main__":
+    #TODO: take input form command line
+    board, n, k, t = createBoard()
+    print board
