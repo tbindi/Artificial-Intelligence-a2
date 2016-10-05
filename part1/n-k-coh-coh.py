@@ -62,14 +62,24 @@ def findTurn(board):
     else:
         return 'w'
 
-def evaluationCalculation(board):
+def evaluationCalculation(board, turn):
     #TODO: write the evaluation function for the current board configuration
     evaluation = 0
+    whiteMoves = 0
+    blackMoves = 0
     return evaluation
 
 def successors(board):
     #TODO: write the successor function here
     return successors
+
+def isOver(board):
+    #TODO write code for the state in which the game is over
+    return False
+
+def playerLost(board):
+    #TODO write code for condition where a player lost
+    return False
 
 def minMax(board):
     #TODO: write the min-max algorithm here
@@ -77,7 +87,6 @@ def minMax(board):
 
 #the main function
 if __name__ == "__main__":
-    #TODO: take input form command line
     board, n, k, t = createBoard()
     print board
     turn = findTurn(board)
