@@ -97,9 +97,55 @@ def playerLost(board):
     #TODO write code for condition where a player lost
     return False
 
-def minMax(board):
+def miniMax(board, depth, turn, alpha, beta):
     #TODO: write the min-max algorithm here
-    return False
+    #TODO: still not clear what I am doing and why I am doing it this way
+    #TODO: did not check if the implementation even works
+    nextMoves = successors(board, turn)
+    score = 0
+    bestRow = -1
+    bestCol = -1
+    #If game over or depth reached, evaluate the score
+    if (isOver(board)) or (depth == 0):
+        score = evaluationCalculation(board, turn)
+    else:
+        #Iterating over the possible states
+        for move in nextMoves:
+            board[move[0]][move[1]] = turn  #Content for the board
+            if turn == 'w':
+                MAX = 'w'
+                MIN = 'b'
+            else:
+                MAX = 'b'
+                MIN = 'w'
+            if turn == MIN:
+                #this is the maximizing player as per the question
+                score = miniMax(board, depth-1, MAX, alpha, beta)[0]
+                if score > alpha:
+                    alpha = score
+                    bestRow = move[0]
+                    bestCol = move[1]
+            else:
+                score = miniMax(board, depth - 1, MIN, alpha, beta)[0]
+                if score < beta:
+                    beta = score
+                    bestRow = move[0]
+                    bestCol = move[1]
+            #undo move
+            board[move[0]][move[1]] = '.'
+            #pruning
+            if alpha >= beta:
+                break
+        return [alpha if (turn is MIN) else beta, bestRow, bestCol]
+
+#evaluate the next move using miniMax, create the new move and return new board configuration
+def nextMove(board, turn):
+    result = miniMax(board, 2, turn, -sys.maxint, sys.maxint)
+    resultRow = result[0]
+    resultCol = result[1]
+    # create the next move based on the result
+    board[resultRow][resultCol] = turn
+    return board
 
 #the main function
 if __name__ == "__main__":
