@@ -83,6 +83,14 @@ def successors(board, turn):
     return states
 
 def isOver(board):
+    emptyPlace = 0
+    for i in range(n):
+        for j in range(n):
+            cur_board = copy.deepcopy(board)
+            if cur_board[i][j] == '.':
+                emptyPlace += 1
+    if emptyPlace > 0:
+        return False
     return True
 
 def playerLost(board):
