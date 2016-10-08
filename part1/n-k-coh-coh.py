@@ -32,6 +32,7 @@ New board:
 .w.w....b
 """
 import sys
+import copy
 
 #this function creates the initial board configuration and time limit from command line
 def createBoard():
@@ -69,13 +70,20 @@ def evaluationCalculation(board, turn):
     blackMoves = 0
     return evaluation
 
-def successors(board):
-    #TODO: write the successor function here
-    return successors
+def successors(board, turn):
+    states = list()
+    if isOver(board):
+        return states
+    for i in range(n):
+        for j in range(n):
+            cur_board = copy.deepcopy(board)
+            if cur_board[i][j] == '.':
+                cur_board[i][j] = turn
+            states.append(cur_board)
+    return states
 
 def isOver(board):
-    #TODO write code for the state in which the game is over
-    return False
+    return True
 
 def playerLost(board):
     #TODO write code for condition where a player lost
@@ -91,3 +99,5 @@ if __name__ == "__main__":
     print board
     turn = findTurn(board)
     print turn
+    valid_moves = successors(board, turn)
+    print valid_moves
