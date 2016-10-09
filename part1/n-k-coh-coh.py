@@ -95,6 +95,22 @@ def isOver(board):
     return True
 
 def playerLost(board, count, turn):
+    #check the row for consecutive occurrences of k(count) of turn
+    for i in range(n):
+        temp_arr = board[i:]
+        if(countConsecutiveOccurences(temp_arr, count, turn)):
+            return True
+    #check the column for consecutive occurrences of k(count) of turn
+    for i in range(n):
+        temp_arr = board[:i]
+        if(countConsecutiveOccurences(temp_arr, count, turn)):
+            return True
+    #check primary and secondary diagonals for consecutive occurrences of k(count) of turn
+    l = len(board[0])
+    primaryDiagonal = [board[i][i] for i in range(l)]
+    secondaryDiagonal = [board[l-1-i][i] for i in range(l-1, -1, -1)]
+    if(countConsecutiveOccurences(primaryDiagonal, count, turn) || countConsecutiveOccurences(secondaryDiagonal, count, turn)):
+        return True
     return False
 
 def countConsecutiveOccurences(array, count, turn):
