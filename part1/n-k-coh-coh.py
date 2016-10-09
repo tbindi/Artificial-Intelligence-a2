@@ -33,6 +33,7 @@ New board:
 """
 import sys
 import copy
+import re
 
 #this function creates the initial board configuration and time limit from command line
 def createBoard():
@@ -93,9 +94,16 @@ def isOver(board):
         return False
     return True
 
-def playerLost(board):
-    #TODO write code for condition where a player lost
+def playerLost(board, count, turn):
     return False
+
+def countConsecutiveOccurences(array, count, turn):
+    pattern = "(turn+turn)*"
+    length = len(max(re.compile(pattern).findall(array)))
+    if length >= count:
+        return True
+    else:
+        return False
 
 def miniMax(board, depth, turn, alpha, beta):
     #TODO: write the min-max algorithm here
@@ -153,5 +161,6 @@ if __name__ == "__main__":
     print board
     turn = findTurn(board)
     print turn
-    valid_moves = successors(board, turn)
-    print valid_moves
+
+    #valid_moves = successors(board, turn)
+    #print valid_moves
