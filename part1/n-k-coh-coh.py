@@ -84,7 +84,6 @@ def successors(board, turn):
     return states
 
 def isOver(board):
-    emptyPlace = 0
     for i in range(n):
         if '.' in board[i]:
             return False
