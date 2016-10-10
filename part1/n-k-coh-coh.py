@@ -89,33 +89,89 @@ def isOver(board):
             return False
     return True
 
-def playerLost(board, count, turn):
+def terminalTest(board, turn, count):
+    resultOver = False
+    resultLoss = False
+    if isOver(board):
+        resultOver = True
+    if playerLost(board, turn, count):
+        resultLoss = True
+    return (resultOver or resultLoss)
+
+def playerLost(board, turn, count):
     #check the row for consecutive occurrences of k(count) of turn
+    if isOver(board):
+        return True
     for i in range(n):
-        temp_arr = board[i:]
-        if(countConsecutiveOccurences(temp_arr, count, turn)):
-            return True
+        temp_arr = board[i]
+        if(countConsecutiveOccurences(temp_arr, turn, count)):
+            if turn == 'w':
+                return 1
+            return -1
     #check the column for consecutive occurrences of k(count) of turn
     for i in range(n):
-        temp_arr = board[:i]
-        if(countConsecutiveOccurences(temp_arr, count, turn)):
-            return True
+        temp_arr = [row[i] for row in board]
+        if(countConsecutiveOccurences(temp_arr, turn, count)):
+            if turn == 'w':
+                return 1
+            return -1
     #check primary and secondary diagonals for consecutive occurrences of k(count) of turn
     l = len(board[0])
     primaryDiagonal = [board[i][i] for i in range(l)]
     secondaryDiagonal = [board[l-1-i][i] for i in range(l-1, -1, -1)]
-    if(countConsecutiveOccurences(primaryDiagonal, count, turn) or countConsecutiveOccurences(secondaryDiagonal, count, turn)):
-        return True
+    if(countConsecutiveOccurences(primaryDiagonal, turn, count) or countConsecutiveOccurences(secondaryDiagonal, turn, count)):
+        if turn == 'w':
+            return 1
+        return -1
     return False
 
-def countConsecutiveOccurences(array, count, turn):
-    pattern = "(turn+turn)*"
-    length = len(max(re.compile(pattern).findall(array)))
-    if length >= count:
-        return True
+def countConsecutiveOccurences(array, turn, count):
+    if turn == 'w':
+        opponent = 'b'
     else:
-        return False
+        opponent = 'w'
+    pattern = opponent+"+"
+    occ = re.compile(pattern).findall(''.join(array))
+    if len(occ) > 0:
+        length = len(max(occ))
+        if length >= count:
+            return True
+        else:
+            return False
+    return False
 
+def utility(board, turn, count):
+    result = playerLost(board, turn, count)
+    return result
+
+def minValue(state, turn, count):
+    if (terminalTest(state, turn, count)):
+        return state, utility(state, turn, count)
+    minState = sys.maxint
+    tempState = state
+    for s in successors(state, turn):
+        tempMin = min(minState, maxValue(s, turn, count)[1])
+        if minState > tempMin:
+            minState = tempMin
+            tempState = s
+    return tempState, minState
+
+def maxValue(state, turn, count):
+    if (terminalTest(state, turn, count)):
+        return state, utility(state, turn, count)
+    maxState = -sys.maxint
+    tempState = state
+    for s in successors(state, turn):
+        tempMax = max(maxState, minValue(s, turn, count)[1])
+        if maxState < tempMax:
+            maxState = tempMax
+            tempState = s
+    return tempState, maxState
+
+def miniMaxDecision(state, turn, count):
+    return maxValue(state, turn, count)
+
+'''
 def miniMax(board, depth, turn, alpha, beta):
     #TODO: write the min-max algorithm here
     #TODO: still not clear what I am doing and why I am doing it this way
@@ -156,8 +212,9 @@ def miniMax(board, depth, turn, alpha, beta):
             if alpha >= beta:
                 break
         return [alpha if (turn is MIN) else beta, bestRow, bestCol]
-
+'''
 #evaluate the next move using miniMax, create the new move and return new board configuration
+'''
 def nextMove(board, turn):
     result = miniMax(board, 2, turn, -sys.maxint, sys.maxint)
     resultRow = result[0]
@@ -165,13 +222,14 @@ def nextMove(board, turn):
     # create the next move based on the result
     board[resultRow][resultCol] = turn
     return board
-
+'''
 #the main function
 if __name__ == "__main__":
     board, n, k, t = createBoard()
     print board
     turn = findTurn(board)
-    print turn
-
-    valid_moves = successors(board, turn)
-    print valid_moves
+    s = miniMaxDecision(board, turn, k)
+    for i in range(9):
+        print(s[0])
+        turn = findTurn(s[0])
+        s = miniMaxDecision(s[0], turn, k)
