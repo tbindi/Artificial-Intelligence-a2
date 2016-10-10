@@ -80,18 +80,14 @@ def successors(board, turn):
             cur_board = copy.deepcopy(board)
             if cur_board[i][j] == '.':
                 cur_board[i][j] = turn
-            states.append(cur_board)
+                states.append(cur_board)
     return states
 
 def isOver(board):
     emptyPlace = 0
     for i in range(n):
-        for j in range(n):
-            cur_board = copy.deepcopy(board)
-            if cur_board[i][j] == '.':
-                emptyPlace += 1
-    if emptyPlace > 0:
-        return False
+        if '.' in board[i]:
+            return False
     return True
 
 def playerLost(board, count, turn):
@@ -109,7 +105,7 @@ def playerLost(board, count, turn):
     l = len(board[0])
     primaryDiagonal = [board[i][i] for i in range(l)]
     secondaryDiagonal = [board[l-1-i][i] for i in range(l-1, -1, -1)]
-    if(countConsecutiveOccurences(primaryDiagonal, count, turn) || countConsecutiveOccurences(secondaryDiagonal, count, turn)):
+    if(countConsecutiveOccurences(primaryDiagonal, count, turn) or countConsecutiveOccurences(secondaryDiagonal, count, turn)):
         return True
     return False
 
@@ -178,5 +174,5 @@ if __name__ == "__main__":
     turn = findTurn(board)
     print turn
 
-    #valid_moves = successors(board, turn)
-    #print valid_moves
+    valid_moves = successors(board, turn)
+    print valid_moves
