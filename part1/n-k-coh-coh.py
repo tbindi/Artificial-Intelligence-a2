@@ -35,6 +35,7 @@ New board:
 import sys
 import copy
 import re
+import numpy as np
 
 #this function creates the initial board configuration and time limit from command line
 def createBoard():
@@ -110,6 +111,7 @@ def playerLost(board, turn, count):
                 return 1
             return -1
     #check primary and secondary diagonals for consecutive occurrences of k(count) of turn
+    '''
     l = len(board[0])
     primaryDiagonal = [board[i][i] for i in range(l)]
     secondaryDiagonal = [board[l-1-i][i] for i in range(l-1, -1, -1)]
@@ -117,9 +119,28 @@ def playerLost(board, turn, count):
         if turn == 'w':
             return 1
         return -1
+    '''
+    #check all diagonals including primary and secondary diagonals
+    diagonal_board = diagonals(board)
+    for i in range(0, len(diagonal_board)):
+        if (countConsecutiveOccurences(diagonal_board[i, turn, count])):
+            if turn == 'w':
+                return 1
+            return -1
     return False
 
+#function to get all diagonals in the board
+def diagonals(board):
+    #Based on the code to get diagonals in Python from http://stackoverflow.com/questions/6313308/get-all-the-diagonals-in-a-matrix-list-of-lists-in-python
+    a = np.array(board)
+    diags = [a[::-1,:].diagonal(i) for i in range(-a.shape[0]+1,a.shape[1])]
+    diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
+    #Code from stackoverflow ends
+    return diags
+
 def countConsecutiveOccurences(array, turn, count):
+    if len(array) < count:
+        return False
     if turn == 'w':
         opponent = 'b'
     else:
