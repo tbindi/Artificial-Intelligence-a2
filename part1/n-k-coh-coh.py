@@ -110,16 +110,6 @@ def playerLost(board, turn, count):
             if turn == 'w':
                 return 1
             return -1
-    #check primary and secondary diagonals for consecutive occurrences of k(count) of turn
-    '''
-    l = len(board[0])
-    primaryDiagonal = [board[i][i] for i in range(l)]
-    secondaryDiagonal = [board[l-1-i][i] for i in range(l-1, -1, -1)]
-    if(countConsecutiveOccurences(primaryDiagonal, turn, count) or countConsecutiveOccurences(secondaryDiagonal, turn, count)):
-        if turn == 'w':
-            return 1
-        return -1
-    '''
     #check all diagonals including primary and secondary diagonals
     diagonal_board = diagonals(board)
     for i in range(0, len(diagonal_board)):
@@ -158,7 +148,7 @@ def countConsecutiveOccurences(array, turn, count):
 def utility(board, turn, count):
     result = playerLost(board, turn, count)
     return result
-'''
+
 def minValue(state, turn, count):
     if (terminalTest(state, turn, count)):
         return state, utility(state, turn, count)
@@ -183,8 +173,8 @@ def maxValue(state, turn, count):
             maxState = tempMax
             tempState = s
     return tempState, maxState
-'''
 
+'''
 def minValue(state, turn, count, alpha, beta):
     if (terminalTest(state, turn, count)):
         return state, utility(state, turn, count)
@@ -209,9 +199,10 @@ def maxValue(state, turn, count, alpha, beta):
         if alpha >= beta:
             return tempState, alpha
     return tempState, alpha
+'''
 
 def miniMaxDecision(state, turn, count):
-    return maxValue(state, turn, count, -sys.maxint, sys.maxint)
+    return maxValue(state, turn, count)
 
 #the main function
 if __name__ == "__main__":
