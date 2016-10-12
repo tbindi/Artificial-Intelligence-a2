@@ -123,7 +123,7 @@ def playerLost(board, turn, count):
     #check all diagonals including primary and secondary diagonals
     diagonal_board = diagonals(board)
     for i in range(0, len(diagonal_board)):
-        if (countConsecutiveOccurences(diagonal_board[i, turn, count])):
+        if (countConsecutiveOccurences(diagonal_board[i], turn, count)):
             if turn == 'w':
                 return 1
             return -1
