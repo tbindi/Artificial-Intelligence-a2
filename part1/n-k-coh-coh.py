@@ -31,7 +31,7 @@ Hmm, I'd recommend putting your marble at row 2, column 1.
 New board:
 .w.w....b
 """
-
+import random
 import sys
 import copy
 import re
@@ -69,13 +69,14 @@ def findTurn(board):
 def successors(board, turn):
     states = list()
     if isOver(board):
-        return states
+        return board
     for i in range(n):
         for j in range(n):
             cur_board = copy.deepcopy(board)
             if cur_board[i][j] == '.':
                 cur_board[i][j] = turn
                 states.append(cur_board)
+    random.shuffle(states)
     return states
 
 def isOver(board):
@@ -93,28 +94,28 @@ def terminalTest(board, turn, count):
         resultLoss = True
     return (resultOver or resultLoss)
 
-def playerLost(board, turn, count):
+def playerLost(board, turn, count, initialTurn):
     #check the row for consecutive occurrences of k(count) of turn
     if isOver(board):
-        return True
+        return 10
     for i in range(n):
         temp_arr = board[i]
         if(countConsecutiveOccurences(temp_arr, turn, count)):
-            if turn == 'w':
+            if turn == initialTurn:
                 return 1
             return -1
     #check the column for consecutive occurrences of k(count) of turn
     for i in range(n):
         temp_arr = [row[i] for row in board]
         if(countConsecutiveOccurences(temp_arr, turn, count)):
-            if turn == 'w':
+            if turn == initialTurn:
                 return 1
             return -1
     #check all diagonals including primary and secondary diagonals
     diagonal_board = diagonals(board)
     for i in range(0, len(diagonal_board)):
         if (countConsecutiveOccurences(diagonal_board[i], turn, count)):
-            if turn == 'w':
+            if turn == initialTurn:
                 return 1
             return -1
     return False
@@ -149,36 +150,50 @@ def utility(board, turn, count):
     result = playerLost(board, turn, count)
     return result
 
-def minValue(state, turn, count):
-    if (terminalTest(state, turn, count)):
-        return state, utility(state, turn, count)
-    minState = sys.maxint
+
+def oppTurn(turn):
+    if turn == 'w':
+        return 'b'
+    return 'w'
+
+def minValue(state, turn, count, initialTurn):
+    util = playerLost(state, turn, count, initialTurn)
+    if (util != False):
+        return state, util
+    minState = 0
     tempState = state
     for s in successors(state, turn):
-        tempMin = min(minState, maxValue(s, turn, count)[1])
+        tempMin = min(minState, maxValue(s, oppTurn(turn), count, initialTurn)[1])
         if minState > tempMin:
             minState = tempMin
             tempState = s
+    if tempState == state:
+        tempState = successors(state,turn)
+        minState = 1
     return tempState, minState
 
 
-def maxValue(state, turn, count):
-    if (terminalTest(state, turn, count)):
-        return state, utility(state, turn, count)
-    maxState = -sys.maxint
+def maxValue(state, turn, count, initialTurn):
+    util = playerLost(state, turn, count, initialTurn)
+    if (util != False):
+        return state, util
+    maxState = 0
     tempState = state
     for s in successors(state, turn):
-        tempMax = max(maxState, minValue(s, turn, count)[1])
+        tempMax = max(maxState, minValue(s, oppTurn(turn), count, initialTurn)[1])
         if maxState < tempMax:
             maxState = tempMax
             tempState = s
+    if tempState == state:
+        tempState = successors(state,turn)[0]
+        maxState = -1
     return tempState, maxState
 
 '''
 def minValue(state, turn, count, alpha, beta):
     if (terminalTest(state, turn, count)):
         return state, utility(state, turn, count)
-    minState = sys.maxint
+    minState = -float('inf')
     tempState = state
     for s in successors(state, turn):
         tempState = s
@@ -191,7 +206,7 @@ def minValue(state, turn, count, alpha, beta):
 def maxValue(state, turn, count, alpha, beta):
     if (terminalTest(state, turn, count)):
         return state, utility(state, turn, count)
-    maxState = -sys.maxint
+    maxState = -float('inf')
     tempState = state
     for s in successors(state, turn):
         tempState = s
@@ -202,7 +217,7 @@ def maxValue(state, turn, count, alpha, beta):
 '''
 
 def miniMaxDecision(state, turn, count):
-    return maxValue(state, turn, count)
+    return maxValue(state, turn, count, turn)
 
 #the main function
 if __name__ == "__main__":
