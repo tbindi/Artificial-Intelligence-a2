@@ -182,7 +182,7 @@ def oppTurn(turn):
 
 def minValue(state, turn, count, initialTurn, depth):
     if depth == 0:
-        return state, evalFunc(state, n, count)
+        return state, evalFunc(state, n, count, turn, initialTurn)
     util = playerLost(state, turn, count, initialTurn)
     if util:
         return state, util
@@ -201,7 +201,7 @@ def minValue(state, turn, count, initialTurn, depth):
 
 def maxValue(state, turn, count, initialTurn, depth):
     if depth == 0:
-        return state, evalFunc(state, n, count)
+        return state, evalFunc(state, n, count, turn, initialTurn)
     util = playerLost(state, turn, count, initialTurn)
     if util:
         return state, util
@@ -218,8 +218,10 @@ def maxValue(state, turn, count, initialTurn, depth):
     return tempState, maxState
 
 
-def evalFunc(state, n, count):
-    return evalPlayer(state, n, count, "w") - evalPlayer(state, n, count, "b")
+def evalFunc(state, n, count, turn, initialTurn):
+    if turn != initialTurn:
+        return evalPlayer(state, n, count, "w") - evalPlayer(state, n, count, "b")
+    return evalPlayer(state, n, count, "b") - evalPlayer(state, n, count, "w")
 
 def evalPlayer(state, n, count, player):
     score = 0
@@ -276,7 +278,7 @@ if __name__ == "__main__":
     board, n, k, t = createBoard()
     d = possibleMoves(board)
     if d > 1:
-        depth = int(log(1000*t, d*d) + 0.5)
+        depth = int(log(500*t, d*d) + 0.5)
     else:
         depth = n*n
     turn = findTurn(board)
