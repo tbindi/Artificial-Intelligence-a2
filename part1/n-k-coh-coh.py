@@ -36,7 +36,7 @@ import sys
 import copy
 import re
 import numpy as np
-
+from math import log
 
 # this function creates the initial board configuration and time limit from command line
 def createBoard():
@@ -51,6 +51,15 @@ def createBoard():
             board[i][j] = inputString[curIndex]
             curIndex += 1
     return board, n, k, t
+
+
+def possibleMoves(board):
+    count = 0
+    for i in range(n):
+        for j in range(n):
+            if board[i][j] == '.':
+                count += 1
+    return count
 
 
 # this function finds who plays next, the white or the black
@@ -171,14 +180,16 @@ def oppTurn(turn):
     return 'w'
 
 
-def minValue(state, turn, count, initialTurn):
+def minValue(state, turn, count, initialTurn, depth):
+    if depth == 0:
+        return state, evalFunc(state, n, count)
     util = playerLost(state, turn, count, initialTurn)
     if util:
         return state, util
     minState = 0
     tempState = state
     for succ in successors(state, turn):
-        tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn)[1])
+        tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn, depth - 1)[1])
         if minState > tempMin:
             minState = tempMin
             tempState = succ
@@ -188,14 +199,16 @@ def minValue(state, turn, count, initialTurn):
     return tempState, minState
 
 
-def maxValue(state, turn, count, initialTurn):
+def maxValue(state, turn, count, initialTurn, depth):
+    if depth == 0:
+        return state, evalFunc(state, n, count)
     util = playerLost(state, turn, count, initialTurn)
     if util:
         return state, util
     maxState = 0
     tempState = state
     for succ in successors(state, turn):
-        tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn)[1])
+        tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn, depth - 1)[1])
         if maxState < tempMax:
             maxState = tempMax
             tempState = succ
@@ -204,6 +217,27 @@ def maxValue(state, turn, count, initialTurn):
         maxState = -1
     return tempState, maxState
 
+
+def evalFunc(state, n, count):
+    return evalPlayer(state, n, count, "w") - evalPlayer(state, n, count, "b")
+
+def evalPlayer(state, n, count, player):
+    score = 0
+    pattern = "[" + player + "|\.]{"+str(count)+",}"
+    for row in state:
+        occ = re.compile(pattern).findall(''.join(row))
+        score += len(occ)
+
+    for i in range(n):
+        temp_arr = [row[i] for row in state]
+        occ = re.compile(pattern).findall(''.join(temp_arr))
+        score += len(occ)
+    # check all diagonals including primary and secondary diagonals
+    diagonal_board = diagonals(state)
+    for i in range(0, len(diagonal_board)):
+        occ = re.compile(pattern).findall(''.join(diagonal_board[i]))
+        score += len(occ)
+    return score
 
 '''
 def minValue(state, turn, count, alpha, beta):
@@ -233,17 +267,21 @@ def maxValue(state, turn, count, alpha, beta):
 '''
 
 
-def miniMaxDecision(state, turn, count):
-    return maxValue(state, turn, count, turn)
+def miniMaxDecision(state, turn, count, depth):
+    return maxValue(state, turn, count, turn, depth)
 
 
 # The main function
 if __name__ == "__main__":
     board, n, k, t = createBoard()
-    print board
+    d = possibleMoves(board)
+    if d > 1:
+        depth = int(log(1000*t, d*d) + 0.5)
+    else:
+        depth = n*n
     turn = findTurn(board)
-    s = miniMaxDecision(board, turn, k)
+    s = miniMaxDecision(board, turn, k, depth)
     for i in range(9):
         print(s[0])
         turn = findTurn(s[0])
-        s = miniMaxDecision(s[0], turn, k)
+        s = miniMaxDecision(s[0], turn, k, depth)
