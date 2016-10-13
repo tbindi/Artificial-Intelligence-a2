@@ -37,24 +37,26 @@ import copy
 import re
 import numpy as np
 
-#this function creates the initial board configuration and time limit from command line
+
+# this function creates the initial board configuration and time limit from command line
 def createBoard():
-    n = int(sys.argv[1])  #board size is nxn
+    n = int(sys.argv[1])  # board size is nxn
     k = int(sys.argv[2])  # value required to lose
-    inputString = list(sys.argv[3])    #board configuration
+    inputString = list(sys.argv[3])  # board configuration
     t = int(sys.argv[4])  # time limit in seconds
-    curIndex = 0    #counter to track the character in the input
+    curIndex = 0  # counter to track the character in the input
     board = [[0 for row in range(0, n)] for col in range(0, n)]
     for i in range(n):
         for j in range(n):
             board[i][j] = inputString[curIndex]
-            curIndex +=1
+            curIndex += 1
     return board, n, k, t
 
-#this function finds who plays next, the white or the black
+
+# this function finds who plays next, the white or the black
 def findTurn(board):
-    whiteCount = 0  #counter to track white moves
-    blackCount = 0  #counter to track black moves
+    whiteCount = 0  # counter to track white moves
+    blackCount = 0  # counter to track black moves
     for i in range(n):
         for j in range(n):
             if board[i][j] == 'w':
@@ -65,6 +67,7 @@ def findTurn(board):
         return 'b'
     else:
         return 'w'
+
 
 def successors(board, turn):
     states = list()
@@ -79,12 +82,14 @@ def successors(board, turn):
     random.shuffle(states)
     return states
 
+
 def isOver(board):
-    for i in range(n):
-        if '.' in board[i]:
+    for row in board:
+        if '.' in row:
             return False
     return True
 
+'''
 def terminalTest(board, turn, count):
     resultOver = False
     resultLoss = False
@@ -92,63 +97,72 @@ def terminalTest(board, turn, count):
         resultOver = True
     if playerLost(board, turn, count):
         resultLoss = True
-    return (resultOver or resultLoss)
+    return resultOver or resultLoss
+'''
+
 
 def playerLost(board, turn, count, initialTurn):
-    #check the row for consecutive occurrences of k(count) of turn
+    # check the row for consecutive occurrences of k(count) of turn
     if isOver(board):
         return 10
     for i in range(n):
         temp_arr = board[i]
-        if(countConsecutiveOccurences(temp_arr, turn, count)):
-            if turn == initialTurn:
+        occFound = countConsecutiveOccurrences(temp_arr, turn, count)
+        if occFound[0]:
+            if occFound[1] != initialTurn:
                 return 1
             return -1
-    #check the column for consecutive occurrences of k(count) of turn
+    # check the column for consecutive occurrences of k(count) of turn
     for i in range(n):
         temp_arr = [row[i] for row in board]
-        if(countConsecutiveOccurences(temp_arr, turn, count)):
-            if turn == initialTurn:
+        occFound = countConsecutiveOccurrences(temp_arr, turn, count)
+        if occFound[0]:
+            if occFound[1] != initialTurn:
                 return 1
             return -1
-    #check all diagonals including primary and secondary diagonals
+    # check all diagonals including primary and secondary diagonals
     diagonal_board = diagonals(board)
     for i in range(0, len(diagonal_board)):
-        if (countConsecutiveOccurences(diagonal_board[i], turn, count)):
-            if turn == initialTurn:
+        occFound = countConsecutiveOccurrences(diagonal_board[i], turn, count)
+        if occFound[0]:
+            if occFound[1] != initialTurn:
                 return 1
             return -1
     return False
 
-#function to get all diagonals in the board
+
+# function to get all diagonals in the board
 def diagonals(board):
-    #Based on the code to get diagonals in Python from http://stackoverflow.com/questions/6313308/get-all-the-diagonals-in-a-matrix-list-of-lists-in-python
+    # Based on the code to get diagonals in Python from
+    # http://stackoverflow.com/questions/6313308/get-all-the-diagonals-in-a-matrix-list-of-lists-in-python
     a = np.array(board)
-    diags = [a[::-1,:].diagonal(i) for i in range(-a.shape[0]+1,a.shape[1])]
-    diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
-    #Code from stackoverflow ends
+    diags = [a[::-1, :].diagonal(i) for i in range(-a.shape[0] + 1, a.shape[1])]
+    diags.extend(a.diagonal(i) for i in range(a.shape[1] - 1, -a.shape[0], -1))
+    # Code from stackoverflow ends
     return diags
 
-def countConsecutiveOccurences(array, turn, count):
+
+def countConsecutiveOccurrences(array, turn, count):
     if len(array) < count:
-        return False
-    if turn == 'w':
-        opponent = 'b'
-    else:
-        opponent = 'w'
-    pattern = opponent+"+"
+        return False, 0
+    pattern = "b+|w+"
     occ = re.compile(pattern).findall(''.join(array))
     if len(occ) > 0:
         length = len(max(occ))
         if length >= count:
-            return True
+            if 'w' in max(occ):
+                return True, 'w'
+            else:
+                return True, 'b'
         else:
-            return False
-    return False
+            return False, 0
+    return False, 0
 
+'''
 def utility(board, turn, count):
     result = playerLost(board, turn, count)
     return result
+'''
 
 
 def oppTurn(turn):
@@ -156,38 +170,40 @@ def oppTurn(turn):
         return 'b'
     return 'w'
 
+
 def minValue(state, turn, count, initialTurn):
     util = playerLost(state, turn, count, initialTurn)
-    if (util != False):
+    if util:
         return state, util
     minState = 0
     tempState = state
-    for s in successors(state, turn):
-        tempMin = min(minState, maxValue(s, oppTurn(turn), count, initialTurn)[1])
+    for succ in successors(state, turn):
+        tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn)[1])
         if minState > tempMin:
             minState = tempMin
-            tempState = s
+            tempState = succ
     if tempState == state:
-        tempState = successors(state,turn)
+        tempState = successors(state, turn)[0]
         minState = 1
     return tempState, minState
 
 
 def maxValue(state, turn, count, initialTurn):
     util = playerLost(state, turn, count, initialTurn)
-    if (util != False):
+    if util:
         return state, util
     maxState = 0
     tempState = state
-    for s in successors(state, turn):
-        tempMax = max(maxState, minValue(s, oppTurn(turn), count, initialTurn)[1])
+    for succ in successors(state, turn):
+        tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn)[1])
         if maxState < tempMax:
             maxState = tempMax
-            tempState = s
+            tempState = succ
     if tempState == state:
-        tempState = successors(state,turn)[0]
+        tempState = successors(state, turn)[0]
         maxState = -1
     return tempState, maxState
+
 
 '''
 def minValue(state, turn, count, alpha, beta):
@@ -216,10 +232,12 @@ def maxValue(state, turn, count, alpha, beta):
     return tempState, alpha
 '''
 
+
 def miniMaxDecision(state, turn, count):
     return maxValue(state, turn, count, turn)
 
-#the main function
+
+# The main function
 if __name__ == "__main__":
     board, n, k, t = createBoard()
     print board
