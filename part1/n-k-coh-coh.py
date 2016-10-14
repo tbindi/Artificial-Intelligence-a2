@@ -38,26 +38,82 @@ import re
 import numpy as np
 from math import log
 
+
 # this function creates the initial board configuration and time limit from command line
 def createBoard():
+    if len(sys.argv) < 5:
+        print "Too few arguments!"
+        exit(0)
+    if len(sys.argv) > 5:
+        print "Too many arguments!"
+        exit(0)
     n = int(sys.argv[1])  # board size is nxn
     k = int(sys.argv[2])  # value required to lose
     inputString = list(sys.argv[3])  # board configuration
     t = int(sys.argv[4])  # time limit in seconds
     curIndex = 0  # counter to track the character in the input
     board = [[0 for row in range(0, n)] for col in range(0, n)]
-    #TODO: Test cases:-
-    #1. k > n (winning condition is higher that the board order)
-    #2. the given input is not in n^2 (positions missing or more than required)
-    #3. input string contains garbled characters other than 'w','b','.'
-    #4. black more than white
-    #5. difference between black and white is more than 1
-    #6. time given is less than one seconds
-    for i in range(n):
-        for j in range(n):
-            board[i][j] = inputString[curIndex]
-            curIndex += 1
-    return board, n, k, t
+    # Test cases:-
+    # 1. k > n (winning condition is higher that the board order)
+    # 2. the given input is not in n^2 (positions missing or more than required)
+    # 3. input string contains garbled characters other than 'w','b','.'
+    # 4. black more than white
+    # 5. difference between black and white is more than 1
+    # 6. time given is less than one seconds
+    flag, message = testInput(n, k, inputString, t)
+    if flag:
+        for i in range(n):
+            for j in range(n):
+                board[i][j] = inputString[curIndex]
+                curIndex += 1
+        return board, n, k, t, flag, message
+    else:
+        return board, n, k, t, flag, message
+
+
+def testInput(n, k, inputString, t):
+    flag = True
+    message = ""
+    if k > n:
+        # k > n (winning condition is higher that the board order)
+        flag = False
+        message += "k value higher than n"
+    elif len(inputString) != (n*n):
+        # the given input is not in n^2 (positions missing or more than required)
+        flag = False
+        message += "Input string is smaller than the board size"
+    elif t < 1:
+        # time given is less than one seconds
+        flag = False
+    testRes, testMessage = checkInputString(inputString)
+    if (flag == False) or (testRes == False):
+        return False, message + "\n" + testMessage
+    else:
+        return True, ""
+
+
+def checkInputString(inputString):
+    message = ""
+    whiteCount = 0  # counter to track white moves
+    blackCount = 0  # counter to track black moves
+    dotCount = 0
+    for i in range(len(inputString)):
+        if inputString[i] == 'w':
+            whiteCount += 1
+        elif inputString[i] == 'b':
+            blackCount += 1
+        elif inputString[i] == '.':
+            dotCount += 1
+        elif inputString[i] != 'w' or inputString[i] != 'b' or inputString[i] != '.':
+            message += "Contains characters other than 'w', 'b', '.'\n"
+    if whiteCount - blackCount > 1:
+        message += "White count is way more than the black count"
+    elif (whiteCount + blackCount + dotCount) != len(inputString):
+        message += "Board configuration does not seem correct"
+    if message == "":
+        return True, message
+    else:
+        return False, message
 
 
 def possibleMoves(board):
@@ -282,16 +338,18 @@ def miniMaxDecision(state, turn, count, depth):
 
 # The main function
 if __name__ == "__main__":
-    board, n, k, t = createBoard()
-    #TODO: add test cases to make sure user input is correct
-    d = possibleMoves(board)
-    if d > 1:
-        depth = int(log(500*t, d*d) + 0.5)
+    board, n, k, t, flag, message = createBoard()
+    if (flag == False):
+        print message
     else:
-        depth = n*n
-    turn = findTurn(board)
-    s = miniMaxDecision(board, turn, k, depth)
-    for i in range(9):
-        print(s[0])
-        turn = findTurn(s[0])
-        s = miniMaxDecision(s[0], turn, k, depth)
+        d = possibleMoves(board)
+        if d > 1:
+            depth = int(log(500*t, d*d) + 0.5)
+        else:
+            depth = n*n
+        turn = findTurn(board)
+        s = miniMaxDecision(board, turn, k, depth)
+        for i in range(9):
+            print(s[0])
+            turn = findTurn(s[0])
+            s = miniMaxDecision(s[0], turn, k, depth)
