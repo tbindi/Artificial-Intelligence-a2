@@ -70,23 +70,15 @@ class ComputerPlayer:
         while new_position < 0:
             tetris.left()
             new_position += 1
-        tetris.piece = tetris.rotate_piece(tetris.piece, rotation)
+        while rotation > 0:
+            tetris.rotate()
+            rotation -= 90
         tetris.down()
 
     def go_down(self, temp_board, tetris, c, piece):
         r = 0
-        for r in range(0, len(temp_board)):
-            if not tetris.check_collision((temp_board, 0), piece, r, c):
-                continue
-            else:
-                break
-        if r == 0:
-            try:
-                temp_board = tetris.place_piece((temp_board, 0), piece, 0, c)[0]
-            except:
-                temp_board = tetris.place_piece((temp_board, 0), piece, 0,
-                                                c-1)[0]
-            return temp_board
+        while not tetris.check_collision((temp_board, 0), piece, r, c):
+            r += 1
         return tetris.place_piece((temp_board, 0), piece, r-1, c)[0]
 
     def get_rotations(self, piece, tetris):
@@ -99,42 +91,41 @@ class ComputerPlayer:
 
     def first_piece(self, board, cur_pieces, tetris):
         fringe = []
-        for c in range(0, len(board[0]) - 1):
-            temp = deepcopy(board)
-            for cur_piece, rotation in cur_pieces:
+        for cur_piece, rotation in cur_pieces:
+            for c in range(0, len(board[0]) - len(cur_piece[0]) + 1):
+                temp = deepcopy(board)
                 temp = self.go_down(temp, tetris, c, cur_piece)
-                fringe.append([temp, c, rotation])
+                if temp is not None:
+                    fringe.append([temp, c, rotation])
         return fringe
 
-    def gen_boards(self, board, next_pieces, tetris, max_score,
-                  max_board):
-        for c in range(0, len(board[0]) - 1):
-            temp = deepcopy(board)
-            for cur_piece, rotation in next_pieces:
+    def gen_second(self, board, next_pieces, tetris):
+        score = 0
+        for cur_piece, rotation in next_pieces:
+            for c in range(0, len(board[0]) - len(cur_piece[0]) + 1):
+                temp = deepcopy(board)
                 temp = self.go_down(temp, tetris, c, cur_piece)
-                param = self.get_param(temp)
-                new_score = self.get_value(param)
-                if max_score < new_score or max_score == 0:
-                    max_score = new_score
-                    max_board = temp
-        return max_board, max_score
+                if temp is not None:
+                    param = self.get_param(temp)
+                    new_score = self.get_value(param)
+                    if score < new_score or score == 0:
+                        score = new_score
+        return score
 
     def gen_states(self, board, tetris):
         cur_pieces = self.get_rotations(tetris.get_piece()[0], tetris)
-        next_pieces = self.get_rotations(tetris.get_next_piece()[0], tetris)
+        next_pieces = self.get_rotations(tetris.get_next_piece(), tetris)
         fringe = self.first_piece(board, cur_pieces, tetris)
         max_score = 0
-        max_board = None
         max_column = -1
         max_rotation = -1
         while len(fringe) > 0:
             temp = fringe.pop(0)
             temp_board = temp[0]
-            new_board, new_score = self.gen_boards(temp_board, next_pieces,
-                                                   tetris, max_score, max_board)
+            new_score = self.gen_second(temp_board, next_pieces,
+                                                   tetris)
             if max_score == 0 or max_score < new_score:
                 max_score = new_score
-                max_board = new_board
                 max_column = temp[1]
                 max_rotation = temp[2]
         return max_column, max_rotation
@@ -144,7 +135,7 @@ class ComputerPlayer:
             -0.35663 * params[2]) + (-0.184483 * params[3])
 
     def get_param(self, board):
-        col_heights = [0 for i in range(0, len(board[0]) + 1)]
+        col_heights = [0 for i in range(0, len(board[0]))]
         complete = 0
         holes = 0
         height = len(board)
