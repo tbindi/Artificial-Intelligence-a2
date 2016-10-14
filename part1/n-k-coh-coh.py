@@ -46,6 +46,13 @@ def createBoard():
     t = int(sys.argv[4])  # time limit in seconds
     curIndex = 0  # counter to track the character in the input
     board = [[0 for row in range(0, n)] for col in range(0, n)]
+    #TODO: Test cases:-
+    #1. k > n (winning condition is higher that the board order)
+    #2. the given input is not in n^2 (positions missing or more than required)
+    #3. input string contains garbled characters other than 'w','b','.'
+    #4. black more than white
+    #5. difference between black and white is more than 1
+    #6. time given is less than one seconds
     for i in range(n):
         for j in range(n):
             board[i][j] = inputString[curIndex]
@@ -276,6 +283,7 @@ def miniMaxDecision(state, turn, count, depth):
 # The main function
 if __name__ == "__main__":
     board, n, k, t = createBoard()
+    #TODO: add test cases to make sure user input is correct
     d = possibleMoves(board)
     if d > 1:
         depth = int(log(500*t, d*d) + 0.5)
