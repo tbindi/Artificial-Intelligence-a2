@@ -35,11 +35,11 @@ import random
 import sys
 import copy
 import re
-import numpy as np
 from math import log
 
 
-# this function creates the initial board configuration and time limit from command line
+# this function creates the initial board configuration and time limit from
+# command line
 def createBoard():
     if len(sys.argv) < 5:
         print "Too few arguments!"
@@ -51,8 +51,7 @@ def createBoard():
     k = int(sys.argv[2])  # value required to lose
     inputString = list(sys.argv[3])  # board configuration
     t = int(sys.argv[4])  # time limit in seconds
-    curIndex = 0  # counter to track the character in the input
-    board = [[0 for row in range(0, n)] for col in range(0, n)]
+    board = []
     # Test cases:-
     # 1. k > n (winning condition is higher that the board order)
     # 2. the given input is not in n^2 (positions missing or more than required)
@@ -60,92 +59,46 @@ def createBoard():
     # 4. black more than white
     # 5. difference between black and white is more than 1
     # 6. time given is less than one seconds
-    flag, message = testInput(n, k, inputString, t)
-    if flag:
-        for i in range(n):
-            for j in range(n):
-                board[i][j] = inputString[curIndex]
-                curIndex += 1
-        return board, n, k, t, flag, message
-    else:
-        return board, n, k, t, flag, message
+    j = 0
+    while j < len(inputString):
+        board.append(inputString[j:j+n])
+        j += n
+    return board, n, k, t, findTurn(board)
 
 
 def testInput(n, k, inputString, t):
-    flag = True
     message = ""
     if (k <= 0) or (n <= 0) or (t <= 0):
         # negative inputs given
-        flag = False
-        message += "One or more input is less than or equal to 0"
+        message = "One or more input is less than or equal to 0"
     if k > n:
         # k > n (winning condition is higher that the board order)
-        flag = False
-        message += "k value higher than n"
+        message = "k value higher than n"
     elif len(inputString) != (n*n):
-        # the given input is not in n^2 (positions missing or more than required)
-        flag = False
-        message += "Input string is smaller than the board size"
-    elif t < 1:
-        # time given is less than one seconds
-        flag = False
-    testRes, testMessage = checkInputString(inputString)
-    if (flag is False) or (testRes is False):
-        return False, message + "\n" + testMessage
-    else:
-        return True, ""
-
-
-def checkInputString(inputString):
-    message = ""
-    whiteCount = 0  # counter to track white moves
-    blackCount = 0  # counter to track black moves
-    dotCount = 0
-    for i in range(len(inputString)):
-        if inputString[i] == 'w':
-            whiteCount += 1
-        elif inputString[i] == 'b':
-            blackCount += 1
-        elif inputString[i] == '.':
-            dotCount += 1
-        elif inputString[i] != 'w' or inputString[i] != 'b' or inputString[i] != '.':
-            message += "Contains characters other than 'w', 'b', '.'\n"
-    if whiteCount - blackCount > 1:
-        message += "White count is way more than the black count"
-    elif (whiteCount + blackCount + dotCount) != len(inputString):
-        message += "Board configuration does not seem correct"
-    if message == "":
-        return True, message
-    else:
-        return False, message
+        # the given input is not in n^2 (positions missing or more than
+        # required)
+        message = "Input string is smaller than the board size"
+    elif t < 0:
+        # time given is less than zero seconds
+        message = "Time is less than zero seconds"
+    if not all(['w', 'b', '.'] in i for i in inputString):
+        print message
+        exit(0)
+    return True
 
 
 def possibleMoves(board):
-    count = 0
-    for i in range(n):
-        for j in range(n):
-            if board[i][j] == '.':
-                count += 1
-    return count
+    return sum([i.count('.') for i in board])
 
 
 # this function finds who plays next, the white or the black
 def findTurn(board):
-    whiteCount = 0  # counter to track white moves
-    blackCount = 0  # counter to track black moves
-    for i in range(n):
-        for j in range(n):
-            if board[i][j] == 'w':
-                whiteCount += 1
-            elif board[i][j] == 'b':
-                blackCount += 1
-    if whiteCount > blackCount:
+    if sum([i.count('w') for i in board]) > sum([i.count('b') for i in board]):
         return 'b'
-    else:
-        return 'w'
+    return 'w'
 
 
-def successors(board, turn):
+def successors(board, turn, count, initialTurn):
     states = list()
     if isOver(board):
         return board
@@ -154,8 +107,17 @@ def successors(board, turn):
             cur_board = copy.deepcopy(board)
             if cur_board[i][j] == '.':
                 cur_board[i][j] = turn
-                states.append(cur_board)
+                val = playerLost(cur_board, turn, count, initialTurn)
+                if not val:
+                    states.append(cur_board)
     random.shuffle(states)
+    if len(states) == 0:
+        for i in range(n):
+            if '.' in cur_board[i]:
+                j = cur_board[i].index('.')
+                cur_board[i][j] = turn
+                break
+        return [cur_board]
     return states
 
 
@@ -166,48 +128,7 @@ def isOver(board):
     return True
 
 
-def playerLost(board, turn, count, initialTurn):
-    # check the row for consecutive occurrences of k(count) of turn
-    if isOver(board):
-        return 10
-    for i in range(n):
-        temp_arr = board[i]
-        occFound = countConsecutiveOccurrences(temp_arr, turn, count)
-        if occFound[0]:
-            if occFound[1] != initialTurn:
-                return 1
-            return -1
-    # check the column for consecutive occurrences of k(count) of turn
-    for i in range(n):
-        temp_arr = [row[i] for row in board]
-        occFound = countConsecutiveOccurrences(temp_arr, turn, count)
-        if occFound[0]:
-            if occFound[1] != initialTurn:
-                return 1
-            return -1
-    # check all diagonals including primary and secondary diagonals
-    diagonal_board = diagonals(board)
-    for i in range(0, len(diagonal_board)):
-        occFound = countConsecutiveOccurrences(diagonal_board[i], turn, count)
-        if occFound[0]:
-            if occFound[1] != initialTurn:
-                return 1
-            return -1
-    return False
-
-
-# function to get all diagonals in the board
-def diagonals(board):
-    # Based on the code to get diagonals in Python from
-    # http://stackoverflow.com/questions/6313308/get-all-the-diagonals-in-a-matrix-list-of-lists-in-python
-    a = np.array(board)
-    diags = [a[::-1, :].diagonal(i) for i in range(-a.shape[0] + 1, a.shape[1])]
-    diags.extend(a.diagonal(i) for i in range(a.shape[1] - 1, -a.shape[0], -1))
-    # Code from stackoverflow ends
-    return diags
-
-
-def countConsecutiveOccurrences(array, turn, count):
+def countConsecutiveOccurrences(array, count):
     if len(array) < count:
         return False, 0
     pattern = "b+|w+"
@@ -224,6 +145,103 @@ def countConsecutiveOccurrences(array, turn, count):
     return False, 0
 
 
+def diagonals(board):
+    list1 = []
+    N = len(board)
+    for c in range(N):
+        i = 0
+        j = c
+        list2 = []
+        while j <= c and N > i >= 0 and j >= 0:
+            list2.append(board[i][j])
+            i += 1
+            j -= 1
+        if len(list2) != 1:
+            list1.append(list2)
+    for c in range(1, N):
+        i = N - 1
+        j = c
+        list2 = []
+        while j < N and N > i > 0 and j > 0:
+            list2.append(board[i][j])
+            i -= 1
+            j += 1
+        if len(list2) != 1:
+            list1.append(list2)
+    for c in range(N):
+        i = 0
+        j = c
+        list2 = []
+        while j < N and N > i >= 0 and j >= 0:
+            list2.append(board[i][j])
+            i += 1
+            j += 1
+        if len(list2) != 1:
+            list1.append(list2)
+    for c in range(1, N):
+        i = c
+        j = 0
+        list2 = []
+        while j < N and N > i > 0 and j >= 0:
+            list2.append(board[i][j])
+            i += 1
+            j += 1
+        if len(list2) != 1:
+            list1.append(list2)
+    return list1
+
+
+def check_row(board, turn, count, initialTurn):
+    for i in range(len(board)):
+        temp_arr = board[i]
+        occFound = countConsecutiveOccurrences(temp_arr, count)
+        if occFound[0]:
+            if occFound[1] != initialTurn:
+                return 1
+            return -1
+    return False
+
+
+def check_col(board, turn, count, initialTurn):
+    for i in range(n):
+        temp_arr = [row[i] for row in board]
+        occFound = countConsecutiveOccurrences(temp_arr, count)
+        if occFound[0]:
+            if occFound[1] != initialTurn:
+                return 1
+            return -1
+    return False
+
+
+def check_diag(board, turn, count, initialTurn):
+    for i in range(0, len(board)):
+        occFound = countConsecutiveOccurrences(board[i], count)
+        if occFound[0]:
+            if occFound[1] != initialTurn:
+                return 1
+            return -1
+    return False
+
+
+def playerLost(board, turn, count, initialTurn):
+    # check the row for consecutive occurrences of k(count) of turn
+    x = check_row(board, turn, count, initialTurn)
+    if x == 1 or x == -1:
+        return x
+    # check the column for consecutive occurrences of k(count) of turn
+    x = check_col(board, turn, count, initialTurn)
+    if x == 1 or x == -1:
+        return x
+    # check all diagonals including primary and secondary diagonals
+    diag_board = diagonals(board)
+    x = check_diag(diag_board, turn, count, initialTurn)
+    if x == 1 or x == -1:
+        return x
+    if isOver(board):
+        return 0
+    return False
+
+
 def oppTurn(turn):
     if turn == 'w':
         return 'b'
@@ -238,17 +256,17 @@ def minValue(state, turn, count, initialTurn, depth):
         return state, util
     minState = sys.maxint
     tempState = state
-    for succ in successors(state, turn):
+    for succ in successors(state, turn, count, initialTurn):
         tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn, depth - 1)[1])
         if minState > tempMin:
             minState = tempMin
             tempState = succ
-    if tempState == state:
-        s1 = successors(state, turn)
-        tempState = random.choice(s1)
-        while len(s1) > 1 and isOver(tempState):
-            s1.remove(tempState)
-            tempState = random.choice(s1)
+    # if tempState == state:
+    #     s1 = successors(state, turn, count, initialTurn)
+    #     tempState = random.choice(s1)
+    #     while len(s1) > 1 and isOver(tempState):
+    #         s1.remove(tempState)
+    #         tempState = random.choice(s1)
     return tempState, minState
 
 
@@ -260,22 +278,24 @@ def maxValue(state, turn, count, initialTurn, depth):
         return state, util
     maxState = -sys.maxint
     tempState = state
-    for succ in successors(state, turn):
+    for succ in successors(state, turn, count, initialTurn):
         tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn, depth - 1)[1])
         if maxState < tempMax:
             maxState = tempMax
             tempState = succ
-    if tempState == state:
-        s1 = successors(state, turn)
-        tempState = random.choice(s1)
-        while len(s1) > 1 and isOver(tempState):
-            s1.remove(tempState)
-            tempState = random.choice(s1)
+    # if tempState == state:
+    #     s1 = successors(state, turn, initialTurn)
+    #     tempState = random.choice(s1)
+    #     while len(s1) > 1 and isOver(tempState):
+    #         s1.remove(tempState)
+    #         tempState = random.choice(s1)
     return tempState, maxState
 
 
 def evalFunc(state, n, count, turn, initialTurn):
-    return abs(evalPlayer(state, n, count, oppTurn(initialTurn)) - evalPlayer(state, n, count, initialTurn))
+    return abs(evalPlayer(state, n, count, oppTurn(initialTurn)) -
+               evalPlayer(state, n, count, initialTurn))
+
 
 def evalPlayer(state, n, count, player):
     score = 0
@@ -341,24 +361,28 @@ def miniMaxDecision(state, turn, count, depth):
     return maxValue(state, turn, count, turn, depth)
 
 
+def display(board):
+    for i in board:
+        print " ".join(j for j in i)
+
+
 # The main function
 if __name__ == "__main__":
-    board, n, k, t, flag, message = createBoard()
-    if not flag:
-        print message
+    board, n, k, t, turn = createBoard()
+    d = possibleMoves(board)
+    if d > 1:
+        depth = int(log(1000000*t, d*d) + 0.5)
     else:
-        d = possibleMoves(board)
-        if d > 1:
-            depth = int(log(1000000*t, d*d) + 0.5)
-        else:
-            depth = n*n
-        turn = findTurn(board)
-        #depth = 1
-        s = miniMaxDecision(board, turn, k, depth)
-        for i in range(29):
-            for row in s[0]:
-                print "".join(row),
-                sys.stdout.softspace = False
-            print ""
-            turn = findTurn(s[0])
-            s = miniMaxDecision(s[0], turn, k, depth)
+        depth = n*n
+    # depth = 1
+    s = miniMaxDecision(board, turn, k, depth)
+    for i in range(29):
+        # for row in s[0]:
+        #     # print "".join(row),
+        #
+        #     sys.stdout.softspace = False
+        # print ""
+        print "----- Turn: ", turn
+        display(s[0])
+        turn = findTurn(s[0])
+        s = miniMaxDecision(s[0], turn, k, depth)

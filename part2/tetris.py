@@ -57,7 +57,7 @@ class ComputerPlayer:
         # another super simple algorithm: just move piece to the least-full
         # column
         while 1:
-            time.sleep(0.1)
+            # time.sleep(0.1)
             board = tetris.get_board()
             column, rotation = self.gen_states(board, tetris)
             self.simulate_move(column, rotation, tetris)
@@ -131,14 +131,15 @@ class ComputerPlayer:
         return max_column, max_rotation
 
     def get_value(self, params):
-        return (-0.511 * params[0]) + (0.761 * params[1]) + (
-            -0.357 * params[2]) + (-0.185 * params[3])
+        return (-0.5 * params[0]) + (0.75 * params[1]) + (-0.3 * params[2]) + (
+            -0.187 * params[3])
 
     def get_param(self, temp_brd):
         col_heights = [0 for i in range(0, len(temp_brd[0]))]
         complete = 0
         holes = 0
         height = len(temp_brd)
+        number_of_x = 0
         for r in range(0, len(temp_brd)):
             for c in range(0, len(temp_brd[r])):
                 if temp_brd[r][c] == 'x' and col_heights[c] == 0:
@@ -147,11 +148,13 @@ class ComputerPlayer:
                     holes += 1
             if all('x' == i for i in temp_brd[r]):
                 complete += 1
+            number_of_x += sum([1 for i in temp_brd[r] if i == 'x'])
         bump = sum(
             [abs(col_heights[i] - col_heights[i+1])
               for i in range(0, len(col_heights)-1)]
             )
-        return [sum(col_heights), complete, holes, bump]
+        return [sum(col_heights), complete, holes, bump, max(col_heights) -
+                min(col_heights), number_of_x]
 
 
 ###################
