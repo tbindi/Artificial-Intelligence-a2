@@ -38,23 +38,30 @@ import re
 import numpy as np
 from math import log
 
+
 # this function creates the initial board configuration and time limit from command line
 def createBoard():
+    if len(sys.argv) < 5:
+        print "Too few arguments!"
+        exit(0)
+    if len(sys.argv) > 5:
+        print "Too many arguments!"
+        exit(0)
     n = int(sys.argv[1])  # board size is nxn
     k = int(sys.argv[2])  # value required to lose
     inputString = list(sys.argv[3])  # board configuration
     t = int(sys.argv[4])  # time limit in seconds
     curIndex = 0  # counter to track the character in the input
     board = [[0 for row in range(0, n)] for col in range(0, n)]
-    #Test cases:-
-    #1. k > n (winning condition is higher that the board order)
-    #2. the given input is not in n^2 (positions missing or more than required)
-    #3. input string contains garbled characters other than 'w','b','.'
-    #4. black more than white
-    #5. difference between black and white is more than 1
-    #6. time given is less than one seconds
+    # Test cases:-
+    # 1. k > n (winning condition is higher that the board order)
+    # 2. the given input is not in n^2 (positions missing or more than required)
+    # 3. input string contains garbled characters other than 'w','b','.'
+    # 4. black more than white
+    # 5. difference between black and white is more than 1
+    # 6. time given is less than one seconds
     flag, message = testInput(n, k, inputString, t)
-    if (flag == True):
+    if flag:
         for i in range(n):
             for j in range(n):
                 board[i][j] = inputString[curIndex]
@@ -62,6 +69,7 @@ def createBoard():
         return board, n, k, t, flag, message
     else:
         return board, n, k, t, flag, message
+
 
 def testInput(n, k, inputString, t):
     flag = True
@@ -71,15 +79,15 @@ def testInput(n, k, inputString, t):
         flag = False
         message += "One or more input is less than or equal to 0"
     if k > n:
-        #k > n (winning condition is higher that the board order)
+        # k > n (winning condition is higher that the board order)
         flag = False
         message += "k value higher than n"
     elif len(inputString) != (n*n):
-        #the given input is not in n^2 (positions missing or more than required)
+        # the given input is not in n^2 (positions missing or more than required)
         flag = False
         message += "Input string is smaller than the board size"
-    elif t<1:
-        #time given is less than one seconds
+    elif t < 1:
+        # time given is less than one seconds
         flag = False
     testRes, testMessage = checkInputString(inputString)
     if (flag == False) or (testRes == False):
@@ -102,14 +110,15 @@ def checkInputString(inputString):
             dotCount += 1
         elif inputString[i] != 'w' or inputString[i] != 'b' or inputString[i] != '.':
             message += "Contains characters other than 'w', 'b', '.'\n"
-    if (whiteCount - blackCount > 1):
+    if whiteCount - blackCount > 1:
         message += "White count is way more than the black count"
     elif (whiteCount + blackCount + dotCount) != len(inputString):
         message += "Board configuration does not seem correct"
-    if (message == ""):
+    if message == "":
         return True, message
     else:
         return False, message
+
 
 def possibleMoves(board):
     count = 0

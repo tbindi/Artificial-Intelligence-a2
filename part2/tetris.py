@@ -63,6 +63,9 @@ class ComputerPlayer:
             self.simulate_move(column, rotation, tetris)
 
     def simulate_move(self, column, rotation, tetris):
+        while rotation > 0:
+            tetris.rotate()
+            rotation -= 90
         new_position = column - tetris.col
         while new_position > 0:
             tetris.right()
@@ -70,9 +73,6 @@ class ComputerPlayer:
         while new_position < 0:
             tetris.left()
             new_position += 1
-        while rotation > 0:
-            tetris.rotate()
-            rotation -= 90
         tetris.down()
 
     def go_down(self, temp_board, tetris, c, piece):
@@ -85,7 +85,7 @@ class ComputerPlayer:
         result = [[piece, 0]]
         for j in [90, 180, 270]:
             i = tetris.rotate_piece(piece, j)
-            if i not in result:
+            if i not in [k[0] for k in result]:
                 result.append([i, j])
         return result
 
@@ -117,35 +117,35 @@ class ComputerPlayer:
         next_pieces = self.get_rotations(tetris.get_next_piece(), tetris)
         fringe = self.first_piece(board, cur_pieces, tetris)
         max_score = 0
-        max_column = -1
-        max_rotation = -1
+        max_column = 0
+        max_rotation = 0
         while len(fringe) > 0:
             temp = fringe.pop(0)
             temp_board = temp[0]
             new_score = self.gen_second(temp_board, next_pieces,
                                                    tetris)
-            if max_score == 0 or max_score < new_score:
+            if max_score == 0 or max_score <= new_score:
                 max_score = new_score
                 max_column = temp[1]
                 max_rotation = temp[2]
         return max_column, max_rotation
 
     def get_value(self, params):
-        return (-0.510066 * params[0]) + (0.760666 * params[1]) + (
-            -0.35663 * params[2]) + (-0.184483 * params[3])
+        return (-0.511 * params[0]) + (0.761 * params[1]) + (
+            -0.357 * params[2]) + (-0.185 * params[3])
 
-    def get_param(self, board):
-        col_heights = [0 for i in range(0, len(board[0]))]
+    def get_param(self, temp_brd):
+        col_heights = [0 for i in range(0, len(temp_brd[0]))]
         complete = 0
         holes = 0
-        height = len(board)
-        for r in range(0, len(board)):
-            for c in range(0, len(board[r])):
-                if board[r][c] == 'x' and col_heights[c] == 0:
+        height = len(temp_brd)
+        for r in range(0, len(temp_brd)):
+            for c in range(0, len(temp_brd[r])):
+                if temp_brd[r][c] == 'x' and col_heights[c] == 0:
                     col_heights[c] = height - r
-                if board[r][c] == ' ' and board[r-1][c] == 'x' and r > 1:
+                if temp_brd[r][c] == ' ' and temp_brd[r-1][c] == 'x' and r > 1:
                     holes += 1
-            if all('x' == i for i in board[r]):
+            if all('x' == i for i in temp_brd[r]):
                 complete += 1
         bump = sum(
             [abs(col_heights[i] - col_heights[i+1])
