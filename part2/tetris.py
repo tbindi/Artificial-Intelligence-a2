@@ -37,7 +37,10 @@ class ComputerPlayer:
     def get_moves(self, piece, board):
         # super simple current algorithm: just randomly move left, right,
         # and rotate a few times
-        return random.choice("mnb") * random.randint(1, 10)
+        # return random.choice("mnb") * random.randint(1, 10)
+        tetris.piece = piece
+        column, rotation = self.gen_states(board, tetris)
+        return self.simulate_move_string(column, rotation, tetris)
        
     # This is the version that's used by the animted version.  This is really
     #  similar to get_moves,
@@ -74,6 +77,20 @@ class ComputerPlayer:
             tetris.left()
             new_position += 1
         tetris.down()
+
+    def simulate_move_string(self, column, rotation, tetris):
+        result = []
+        while rotation > 0:
+            result.append("n")
+            rotation -= 90
+        new_position = column - tetris.col
+        while new_position > 0:
+            result.append("m")
+            new_position -= 1
+        while new_position < 0:
+            result.append("b")
+            new_position += 1
+        return "".join(result)
 
     def go_down(self, temp_board, tetris, c, piece):
         r = 0
