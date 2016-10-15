@@ -86,7 +86,7 @@ def testInput(n, k, inputString, t):
         # time given is less than one seconds
         flag = False
     testRes, testMessage = checkInputString(inputString)
-    if (flag == False) or (testRes == False):
+    if (flag is False) or (testRes is False):
         return False, message + "\n" + testMessage
     else:
         return True, ""
@@ -161,17 +161,6 @@ def isOver(board):
             return False
     return True
 
-'''
-def terminalTest(board, turn, count):
-    resultOver = False
-    resultLoss = False
-    if isOver(board):
-        resultOver = True
-    if playerLost(board, turn, count):
-        resultLoss = True
-    return resultOver or resultLoss
-'''
-
 
 def playerLost(board, turn, count, initialTurn):
     # check the row for consecutive occurrences of k(count) of turn
@@ -220,21 +209,15 @@ def countConsecutiveOccurrences(array, turn, count):
     pattern = "b+|w+"
     occ = re.compile(pattern).findall(''.join(array))
     if len(occ) > 0:
-        length = len(max(occ))
+        length = len(max(occ, key=len))
         if length >= count:
-            if 'w' in max(occ):
+            if 'w' in max(occ, key=len):
                 return True, 'w'
             else:
                 return True, 'b'
         else:
             return False, 0
     return False, 0
-
-'''
-def utility(board, turn, count):
-    result = playerLost(board, turn, count)
-    return result
-'''
 
 
 def oppTurn(turn):
@@ -249,7 +232,7 @@ def minValue(state, turn, count, initialTurn, depth):
     util = playerLost(state, turn, count, initialTurn)
     if util:
         return state, util
-    minState = 0
+    minState = sys.maxint
     tempState = state
     for succ in successors(state, turn):
         tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn, depth - 1)[1])
@@ -257,8 +240,11 @@ def minValue(state, turn, count, initialTurn, depth):
             minState = tempMin
             tempState = succ
     if tempState == state:
-        tempState = successors(state, turn)[0]
-        minState = 1
+        s1 = successors(state, turn)
+        tempState = random.choice(s1)
+        while len(s1) > 1 and isOver(tempState):
+            s1.remove(tempState)
+            tempState = random.choice(s1)
     return tempState, minState
 
 
@@ -268,7 +254,7 @@ def maxValue(state, turn, count, initialTurn, depth):
     util = playerLost(state, turn, count, initialTurn)
     if util:
         return state, util
-    maxState = 0
+    maxState = -sys.maxint
     tempState = state
     for succ in successors(state, turn):
         tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn, depth - 1)[1])
@@ -276,19 +262,20 @@ def maxValue(state, turn, count, initialTurn, depth):
             maxState = tempMax
             tempState = succ
     if tempState == state:
-        tempState = successors(state, turn)[0]
-        maxState = -1
+        s1 = successors(state, turn)
+        tempState = random.choice(s1)
+        while len(s1) > 1 and isOver(tempState):
+            s1.remove(tempState)
+            tempState = random.choice(s1)
     return tempState, maxState
 
 
 def evalFunc(state, n, count, turn, initialTurn):
-    if turn != initialTurn:
-        return evalPlayer(state, n, count, "w") - evalPlayer(state, n, count, "b")
-    return evalPlayer(state, n, count, "b") - evalPlayer(state, n, count, "w")
+    return abs(evalPlayer(state, n, count, oppTurn(initialTurn)) - evalPlayer(state, n, count, initialTurn))
 
 def evalPlayer(state, n, count, player):
     score = 0
-    pattern = "[" + player + "|\.]{"+str(count)+",}"
+    pattern = "(?=([" + player + "|\.]{"+str(count)+"}))"
     for row in state:
         occ = re.compile(pattern).findall(''.join(row))
         score += len(occ)
@@ -305,6 +292,20 @@ def evalPlayer(state, n, count, player):
     return score
 
 '''
+def terminalTest(board, turn, count):
+    resultOver = False
+    resultLoss = False
+    if isOver(board):
+        resultOver = True
+    if playerLost(board, turn, count):
+        resultLoss = True
+    return resultOver or resultLoss
+
+
+def utility(board, turn, count):
+    result = playerLost(board, turn, count)
+    return result
+
 def minValue(state, turn, count, alpha, beta):
     if (terminalTest(state, turn, count)):
         return state, utility(state, turn, count)
@@ -339,17 +340,21 @@ def miniMaxDecision(state, turn, count, depth):
 # The main function
 if __name__ == "__main__":
     board, n, k, t, flag, message = createBoard()
-    if (flag == False):
+    if not flag:
         print message
     else:
         d = possibleMoves(board)
         if d > 1:
-            depth = int(log(500*t, d*d) + 0.5)
+            depth = int(log(1000000*t, d*d) + 0.5)
         else:
             depth = n*n
         turn = findTurn(board)
+        #depth = 1
         s = miniMaxDecision(board, turn, k, depth)
-        for i in range(9):
-            print(s[0])
+        for i in range(29):
+            for row in s[0]:
+                print "".join(row),
+                sys.stdout.softspace = False
+            print ""
             turn = findTurn(s[0])
             s = miniMaxDecision(s[0], turn, k, depth)
