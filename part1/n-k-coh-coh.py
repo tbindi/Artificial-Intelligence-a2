@@ -66,6 +66,10 @@ def createBoard():
 def testInput(n, k, inputString, t):
     flag = True
     message = ""
+    if (k <= 0) or (n <= 0) or (t <= 0):
+        # negative inputs given
+        flag = False
+        message += "One or more input is less than or equal to 0"
     if k > n:
         #k > n (winning condition is higher that the board order)
         flag = False
