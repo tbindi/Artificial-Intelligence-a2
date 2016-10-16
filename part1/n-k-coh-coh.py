@@ -247,7 +247,8 @@ def oppTurn(turn):
         return 'b'
     return 'w'
 
-
+'''
+#### WORKING CODE
 def minValue(state, turn, count, initialTurn, depth):
     if depth == 0:
         return state, evalFunc(state, n, count, turn, initialTurn)
@@ -291,6 +292,48 @@ def maxValue(state, turn, count, initialTurn, depth):
     #         tempState = random.choice(s1)
     return tempState, maxState
 
+
+def miniMaxDecision(state, turn, count, depth):
+    return maxValue(state, turn, count, turn, depth)
+'''
+
+
+def minValue(state, turn, count, initialTurn, depth, alpha, beta):
+    if depth == 0:
+        return state, evalFunc(state, n, count, turn, initialTurn)
+    util = playerLost(state, turn, count, initialTurn)
+    if util:
+        return state, util
+    minState = sys.maxint
+    tempState = state
+    for succ in successors(state, turn, count, initialTurn):
+        tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn, depth - 1, alpha, beta)[1])
+        tempState = succ
+        if tempMin <= alpha:
+            return tempState, tempMin
+        beta = min(beta, tempMin)
+    return tempState, minState
+
+
+def maxValue(state, turn, count, initialTurn, depth, alpha, beta):
+    if depth == 0:
+        return state, evalFunc(state, n, count, turn, initialTurn)
+    util = playerLost(state, turn, count, initialTurn)
+    if util:
+        return state, util
+    maxState = -sys.maxint
+    tempState = state
+    for succ in successors(state, turn, count, initialTurn):
+        tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn, depth - 1, alpha, beta)[1])
+        tempState = succ
+        if tempMax >= beta:
+            return tempState, tempMax
+        alpha = max(alpha, tempMax)
+    return tempState, maxState
+
+
+def miniMaxDecision(state, turn, count, depth):
+    return maxValue(state, turn, count, turn, depth, -sys.maxint, sys.maxint)
 
 def evalFunc(state, n, count, turn, initialTurn):
     return abs(evalPlayer(state, n, count, oppTurn(initialTurn)) -
@@ -357,10 +400,6 @@ def maxValue(state, turn, count, alpha, beta):
 '''
 
 
-def miniMaxDecision(state, turn, count, depth):
-    return maxValue(state, turn, count, turn, depth)
-
-
 def display(board):
     for i in board:
         print " ".join(j for j in i)
@@ -371,7 +410,7 @@ if __name__ == "__main__":
     board, n, k, t, turn = createBoard()
     d = possibleMoves(board)
     if d > 1:
-        depth = int(log(1000000*t, d*d) + 0.5)
+        depth = int(log(10000000000*t, d*d) + 0.5)
     else:
         depth = n*n
     # depth = 1
