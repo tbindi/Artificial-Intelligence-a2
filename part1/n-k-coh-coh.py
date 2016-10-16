@@ -6,6 +6,7 @@ from math import log
 import time
 from threading import Thread
 
+
 # this function creates the initial board configuration and time limit from
 # command line
 def createBoard():
@@ -38,6 +39,7 @@ def createBoard():
             j += n
         return board, n, k, t, findTurn(board)
 
+
 def testInput(n, k, inputString, t):
     flag = True
     message = ""
@@ -58,6 +60,7 @@ def testInput(n, k, inputString, t):
     else:
         return True, ""
 
+
 def checkInputString(inputString):
     message = ""
     whiteCount = 0  # counter to track white moves
@@ -76,19 +79,22 @@ def checkInputString(inputString):
         message += "Inconsistent white and black count"
     elif (whiteCount + blackCount + dotCount) != len(inputString):
         message += "Board configuration does not seem correct"
-    if (message == ""):
+    if message == "":
         return True, message
     else:
         return False, message
 
+
 def possibleMoves(board):
     return sum([i.count('.') for i in board])
+
 
 # this function finds who plays next, the white or the black
 def findTurn(board):
     if sum([i.count('w') for i in board]) > sum([i.count('b') for i in board]):
         return 'b'
     return 'w'
+
 
 def successors(board, turn, count, initialTurn):
     states = list()
@@ -112,11 +118,13 @@ def successors(board, turn, count, initialTurn):
         return [cur_board]
     return states
 
+
 def isOver(board):
     for row in board:
         if '.' in row:
             return False
     return True
+
 
 def countConsecutiveOccurrences(array, count):
     if len(array) < count:
@@ -133,6 +141,7 @@ def countConsecutiveOccurrences(array, count):
         else:
             return False, 0
     return False, 0
+
 
 def diagonals(board):
     list1 = []
@@ -179,6 +188,7 @@ def diagonals(board):
             list1.append(list2)
     return list1
 
+
 def check_row(board, turn, count, initialTurn):
     for i in range(len(board)):
         temp_arr = board[i]
@@ -188,6 +198,7 @@ def check_row(board, turn, count, initialTurn):
                 return 1
             return -1
     return False
+
 
 def check_col(board, turn, count, initialTurn):
     for i in range(n):
@@ -199,6 +210,7 @@ def check_col(board, turn, count, initialTurn):
             return -1
     return False
 
+
 def check_diag(board, turn, count, initialTurn):
     for i in range(0, len(board)):
         occFound = countConsecutiveOccurrences(board[i], count)
@@ -207,6 +219,7 @@ def check_diag(board, turn, count, initialTurn):
                 return 1
             return -1
     return False
+
 
 def playerLost(board, turn, count, initialTurn):
     # check the row for consecutive occurrences of k(count) of turn
@@ -226,13 +239,14 @@ def playerLost(board, turn, count, initialTurn):
         return 0
     return False
 
+
 def oppTurn(turn):
     if turn == 'w':
         return 'b'
     return 'w'
 
 '''
-#### WORKING CODE
+#### WORKING Minimax CODE
 def minValue(state, turn, count, initialTurn, depth):
     if depth == 0:
         return state, evalFunc(state, n, count, turn, initialTurn)
@@ -281,7 +295,8 @@ def miniMaxDecision(state, turn, count, depth):
     return maxValue(state, turn, count, turn, depth)
 '''
 
-def minValue(state, turn, count, initialTurn, depth, alpha, beta):
+
+def minValue(state, turn, count, initialTurn, depth, alpha, beta, initialDepth):
     if depth == 0:
         return state, evalFunc(state, n, count, turn, initialTurn)
     util = playerLost(state, turn, count, initialTurn)
@@ -290,14 +305,15 @@ def minValue(state, turn, count, initialTurn, depth, alpha, beta):
     minState = sys.maxint
     tempState = state
     for succ in successors(state, turn, count, initialTurn):
-        tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn, depth - 1, alpha, beta)[1])
+        tempMin = min(minState, maxValue(succ, oppTurn(turn), count, initialTurn, depth - 1, alpha, beta, initialDepth)[1])
         tempState = succ
         if tempMin <= alpha:
             return tempState, tempMin
         beta = min(beta, tempMin)
     return tempState, minState
 
-def maxValue(state, turn, count, initialTurn, depth, alpha, beta):
+
+def maxValue(state, turn, count, initialTurn, depth, alpha, beta, initialDepth):
     if depth == 0:
         return state, evalFunc(state, n, count, turn, initialTurn)
     util = playerLost(state, turn, count, initialTurn)
@@ -306,15 +322,19 @@ def maxValue(state, turn, count, initialTurn, depth, alpha, beta):
     maxState = -sys.maxint
     tempState = state
     for succ in successors(state, turn, count, initialTurn):
-        tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn, depth - 1, alpha, beta)[1])
+        tempMax = max(maxState, minValue(succ, oppTurn(turn), count, initialTurn, depth - 1, alpha, beta, initialDepth)[1])
         tempState = succ
+        if depth == initialDepth:
+            display(succ)   # print current succ
         if tempMax >= beta:
             return tempState, tempMax
         alpha = max(alpha, tempMax)
     return tempState, maxState
 
+
 def miniMaxDecision(state, turn, count, depth):
-    return maxValue(state, turn, count, turn, depth, -sys.maxint, sys.maxint)
+    return maxValue(state, turn, count, turn, depth, -sys.maxint, sys.maxint, depth)
+
 
 def evalFunc(state, n, count, turn, initialTurn):
     return abs(evalPlayer(state, n, count, oppTurn(initialTurn)) -
@@ -336,6 +356,7 @@ def evalPlayer(state, n, count, player):
         occ = re.compile(pattern).findall(''.join(diagonal_board[i]))
         score += len(occ)
     return score
+
 
 '''
 def terminalTest(board, turn, count):
@@ -378,29 +399,33 @@ def maxValue(state, turn, count, alpha, beta):
     return tempState, alpha
 '''
 
+
 def display(board):
-    for i in board:
-        print " ".join(j for j in i)
+    output = ""
+    for row in board:
+        output = output + "".join(row)
+    print output
+
 
 def busyWaiting(t):
     print "Thinking..."
     time.sleep(t - 0.6)
     print "Recommended configuration of new board:-"
 
+
 def playGame(board, n , k , t, turn):
     d = possibleMoves(board)
     if d > 1:
-        depth = int(log(10000000000 * t, d * d) + 0.5)
+        depth = int(log(1000000 * t, d) + 0.5)
     else:
         depth = n * n
     s = miniMaxDecision(board, turn, k, depth)
-    output = ""
-    for row in s[0]:
-        output = output + "".join(row)
-    print output
+    display(s[0])
+
 
 # The main function
 if __name__ == "__main__":
     board, n, k, t, turn = createBoard()
-    Thread(target=busyWaiting(t)).start()
-    Thread(target=playGame(board, n , k , t, turn)).start()
+    # Thread(target=busyWaiting(t)).start()
+    # Thread(target=playGame(board, n , k , t, turn)).start()
+    playGame(board, n, k, t, turn)
