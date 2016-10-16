@@ -36,6 +36,8 @@ import sys
 import copy
 import re
 from math import log
+import time
+from threading import Thread
 
 
 # this function creates the initial board configuration and time limit from
@@ -302,7 +304,7 @@ def minValue(state, turn, count, initialTurn, depth, alpha, beta):
     if depth == 0:
         return state, evalFunc(state, n, count, turn, initialTurn)
     util = playerLost(state, turn, count, initialTurn)
-    if util:
+    if util is not False:
         return state, util
     minState = sys.maxint
     tempState = state
@@ -319,7 +321,7 @@ def maxValue(state, turn, count, initialTurn, depth, alpha, beta):
     if depth == 0:
         return state, evalFunc(state, n, count, turn, initialTurn)
     util = playerLost(state, turn, count, initialTurn)
-    if util:
+    if util is not False:
         return state, util
     maxState = -sys.maxint
     tempState = state
@@ -404,15 +406,16 @@ def display(board):
     for i in board:
         print " ".join(j for j in i)
 
+def busyWaiting(t):
+    print "Thinking..."
+    time.sleep(t - 0.6)
 
-# The main function
-if __name__ == "__main__":
-    board, n, k, t, turn = createBoard()
+def playGame(board, n , k , t, turn):
     d = possibleMoves(board)
     if d > 1:
-        depth = int(log(10000000000*t, d*d) + 0.5)
+        depth = int(log(10000000000 * t, d * d) + 0.5)
     else:
-        depth = n*n
+        depth = n * n
     # depth = 1
     s = miniMaxDecision(board, turn, k, depth)
     for i in range(29):
@@ -425,3 +428,9 @@ if __name__ == "__main__":
         display(s[0])
         turn = findTurn(s[0])
         s = miniMaxDecision(s[0], turn, k, depth)
+
+# The main function
+if __name__ == "__main__":
+    board, n, k, t, turn = createBoard()
+    Thread(target=busyWaiting(t)).start()
+    Thread(target=playGame(board, n , k , t, turn)).start()
