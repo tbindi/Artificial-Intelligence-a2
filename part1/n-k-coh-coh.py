@@ -1,3 +1,47 @@
+'''
+=======================
+Approach to the problem
+=======================
+
+Parsing the parameters:-
+------------------------
+We took the command line arguments that were passed to the program and parsed them to get the board size, winning case,
+initial board configuration and the time limit allowed to search for an optimal move.
+
+Handling negative cases:-
+--------------------------
+We handled the following test cases:-
+    1. k > n (winning condition is higher that the board order)
+    2. the given input is not in n^2 (positions missing or more than required)
+    3. input string contains garbled characters other than 'w','b','.'
+    4. black more than white
+    5. difference between black and white is more than 1
+    6. time given is less than one seconds
+
+Finding optimal depth:-
+-----------------------
+We used the branching factor, which is the number of moves available for a player and used the relation between the
+time complexity, branching facor and depth to calculate the optimal depth for a given time parameter.
+As the branching factor increases, time complexity imcreases. As the depth increases, time complexity increases. Based
+on a series of experiments (over 800), we found out various parameters, which we used to calculate the depth upto which
+we must proceed for a given time constraint.
+
+Mini-Max algorithm with Alpha-Beta pruning:-
+-------------------------------------------
+We used Mini-Max algorithm along with Alpha-Beta pruning. We always assume that our player, as well as the opponent will
+always make an optimal move. Using this, we eliminated the states that lead to the loss of our player. This was done
+to find the optimal move using evaluation function and controlling the branching factor.
+
+Evaluation Function:-
+---------------------
+The evaluation function uses the difference between the ways in which our player can lose and the opponent can lose
+to come up with a value which will give us an idea if we should make this move or not.
+
+Successor function:-
+--------------------
+We used successor function to generate possible states for us
+'''
+
 import random
 import sys
 import copy
