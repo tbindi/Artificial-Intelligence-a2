@@ -14,7 +14,7 @@ We handled the following test cases:-
     1. k > n (winning condition is higher that the board order)
     2. the given input is not in n^2 (positions missing or more than required)
     3. input string contains garbled characters other than 'w','b','.'
-    4. black more than white
+    4. difference between black and white more than one
     5. difference between black and white is more than 1
     6. time given is less than one seconds
 
