@@ -1,3 +1,31 @@
+"""
+References:
+    1. https://www2.informatik.uni-erlangen.de/EN/publication/download/mic.pdf
+    2. https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/
+
+Although the parameters used for the heuristic is the same. I have tweaked
+coefficients of each parameter and added few of my parameters that I felt
+would make a difference in evaluating the generated states.
+
+Considering 10x20 board and that current and next piece is known we are
+applying the heuristic. Higher negative coefficients are used for the
+parameters that will give a better heuristic given the board. Example:
+Completeness is something we are aiming for so we have a positive coefficient
+whereas all the others are given a negative. Especially the Aggregate Height
+of all columns, Bumpiness between two consecutive columns and the altitude
+difference.
+
+ To test the altitude difference we changed it to positive to see how it
+ changed the way it placed the piece.
+
+Existing Parameters:
+    1. Aggregate Height of all columns -- Given a weight of -0.5
+    2. Completeness of the Board -- Positive weight of 0.75
+    3. Connected holes in the board -- Less holes, weight of -0.3
+    4. Bumpiness of columns -- adjacent alt diff, weight of -0.187
+    5. Altitude Difference -- Less difference the better, -0.37
+    6. Number of x -- There should be less 'x' in the board, -0.001, less weight
+"""
 # Simple tetris program! v0.1
 # D. Crandall, Sept 2016
 
@@ -149,7 +177,7 @@ class ComputerPlayer:
 
     def get_value(self, params):
         return (-0.5 * params[0]) + (0.75 * params[1]) + (-0.3 * params[2]) + (
-            -0.187 * params[3])
+            -0.187 * params[3]) + (-0.37 * params[4]) + (-0.001 * params[5])
 
     def get_param(self, temp_brd):
         col_heights = [0 for i in range(0, len(temp_brd[0]))]
