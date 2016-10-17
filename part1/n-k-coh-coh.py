@@ -20,17 +20,16 @@ We handled the following test cases:-
 
 Finding optimal depth:-
 -----------------------
-We used the branching factor, which is the number of moves available for a player and used the relation between the
-time complexity, branching facor and depth to calculate the optimal depth for a given time parameter.
-As the branching factor increases, time complexity imcreases. As the depth increases, time complexity increases. Based
+We used the branching factor, which is the number of moves available for a player and used the relation, (time = O(b^d))
+i.e.(b^d <= c*t), where t is time, b = branching factor, d = depth and c = arbitrary constant to calculate the optimal
+depth for a given time parameter.
+As the branching factor increases, time complexity increases. As the depth increases, time increases. Based
 on a series of experiments (over 800), we found out various parameters, which we used to calculate the depth upto which
 we must proceed for a given time constraint.
 
 Mini-Max algorithm with Alpha-Beta pruning:-
 -------------------------------------------
-We used Mini-Max algorithm along with Alpha-Beta pruning. We always assume that our player, as well as the opponent will
-always make an optimal move. Using this, we eliminated the states that lead to the loss of our player. This was done
-to find the optimal move using evaluation function and controlling the branching factor.
+We used Mini-Max algorithm along with Alpha-Beta pruning.
 
 Evaluation Function:-
 ---------------------
@@ -39,7 +38,8 @@ to come up with a value which will give us an idea if we should make this move o
 
 Successor function:-
 --------------------
-We used successor function to generate possible states for us
+We used successor function to generate possible states for us. We always assume that both players will always make an
+optimal move. Using this, we eliminated the states that lead to the loss of a player.
 '''
 
 import random
@@ -119,7 +119,7 @@ def checkInputString(inputString):
             dotCount += 1
         elif inputString[i] != 'w' or inputString[i] != 'b' or inputString[i] != '.':
             message += "Contains characters other than 'w', 'b', '.'\n"
-    if (abs(whiteCount - blackCount) > 1):
+    if abs(whiteCount - blackCount) > 1:
         message += "Inconsistent white and black count"
     elif (whiteCount + blackCount + dotCount) != len(inputString):
         message += "Board configuration does not seem correct"
@@ -383,6 +383,7 @@ def miniMaxDecision(state, turn, count, depth):
 def evalFunc(state, n, count, turn, initialTurn):
     return abs(evalPlayer(state, n, count, oppTurn(initialTurn)) -
                evalPlayer(state, n, count, initialTurn))
+
 
 def evalPlayer(state, n, count, player):
     score = 0
