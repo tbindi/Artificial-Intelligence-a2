@@ -460,7 +460,7 @@ def busyWaiting(t):
 def playGame(board, n , k , t, turn):
     d = possibleMoves(board)
     if d > 1:
-        depth = int(log(1000000 * t, d) + 0.5)
+        depth = int(log(1000000 * t, d) + 1)
     else:
         depth = n * n
     s = miniMaxDecision(board, turn, k, depth)
